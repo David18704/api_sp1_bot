@@ -44,14 +44,13 @@ def send_message(message):
 
 
 def main():
-    current_timestamp = int(time.time())
 
     while True:
         try:
             logging.debug('Отслеживание статуса запущено')
             send_message(
                 parse_homework_status(
-			        get_homeworks(1628000000)['homeworks'][0]	
+                    get_homeworks(1628000000)['homeworks'][0]
                 )
             )
             logging.info('Бот отправил сообщение')
