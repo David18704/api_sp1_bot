@@ -3,10 +3,12 @@ import time
 import requests
 import telegram
 import logging
+from http import HTTPStatus
 from dotenv import load_dotenv
 
 
 load_dotenv()
+
 
 class TGBotException(Exception):
     pass
@@ -19,6 +21,7 @@ CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
 url = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
+
 
 def parse_homework_status(homework):
     homework_name = homework.get('homework_name')
@@ -38,7 +41,6 @@ def parse_homework_status(homework):
         return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
     else:
         raise TGBotException('Значение поля заполнено неверно')
-   
 
 
 def get_homeworks(current_timestamp):
@@ -46,11 +48,12 @@ def get_homeworks(current_timestamp):
     payload = {'from_date': current_timestamp}
     try:
         homework_statuses = requests.get(url, headers=headers, params=payload)
-    except requests.exceptions.RequestException as e:
-        raise requests.exceptions.RequestException('Ошибка при работе с API: {e}')
+    except requests.exceptions.RequestException:
+        raise requests.exceptions.RequestException('Ошибка при работе с API')
     answer = homework_statuses.json()
-    if homework_statuses.status_code != 200:
-        raise requests.exceptions.RequestException('Ошибка при работе с сервером')
+    if homework_statuses.status_code != HTTPStatus.OK:
+        raise requests.exceptions.RequestException(
+            'Ошибка при работе с сервером')
     else:
         return answer
 
@@ -60,7 +63,7 @@ def send_message(message):
 
 
 def main():
-    current_timestamp = int(time.time())  
+    current_timestamp = int(time.time())
     while True:
         try:
             logging.debug('Отслеживание статуса запущено')
