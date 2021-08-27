@@ -20,7 +20,7 @@ CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
-url = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
+URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 
 
 def parse_homework_status(homework):
@@ -31,14 +31,13 @@ def parse_homework_status(homework):
     if homework_statuses is None:
         raise TGBotException('Сообщение не содержит обязательных полей')
     if homework_statuses == 'reviewing':
-        verdict = 'Работа взята в ревью.'
-        return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+        verdict = 'Работа взята в ревью.'       
     if homework_statuses == 'rejected':
-        verdict = 'К сожалению, в работе нашлись ошибки.'
-        return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+        verdict = 'К сожалению, в работе нашлись ошибки.'    
     if homework_statuses == 'approved':
-        verdict = 'Ревьюеру всё понравилось, работа зачтена!'
-        return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+        verdict = 'Ревьюеру всё понравилось, работа зачтена!'    
+    if homework_statuses == 'reviewing' or 'reviewing' or 'approved':
+         return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
     else:
         raise TGBotException('Значение поля заполнено неверно')
 
@@ -47,15 +46,15 @@ def get_homeworks(current_timestamp):
     headers = {'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'}
     payload = {'from_date': current_timestamp}
     try:
-        homework_statuses = requests.get(url, headers=headers, params=payload)
+        homework_statuses = requests.get(URL, headers=headers, params=payload)
     except requests.exceptions.RequestException:
-        raise requests.exceptions.RequestException('Ошибка при работе с API')
-    answer = homework_statuses.json()
+        raise TGBotException('Ошибка при работе с API')
+    answer = homework_statuses.json()  
+    if len(['homeworks']) == 0:
+        raise IndexError('Спсок пуст')
     if homework_statuses.status_code != HTTPStatus.OK:
-        raise requests.exceptions.RequestException(
-            'Ошибка при работе с сервером')
-    else:
-        return answer
+        raise TGBotException('Ошибка при работе с сервером')
+    return answer
 
 
 def send_message(message):
