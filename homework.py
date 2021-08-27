@@ -31,13 +31,13 @@ def parse_homework_status(homework):
     if homework_statuses is None:
         raise TGBotException('Сообщение не содержит обязательных полей')
     if homework_statuses == 'reviewing':
-        verdict = 'Работа взята в ревью.'       
+        verdict = 'Работа взята в ревью.'
     if homework_statuses == 'rejected':
-        verdict = 'К сожалению, в работе нашлись ошибки.'    
+        verdict = 'К сожалению, в работе нашлись ошибки.'
     if homework_statuses == 'approved':
-        verdict = 'Ревьюеру всё понравилось, работа зачтена!'    
+        verdict = 'Ревьюеру всё понравилось, работа зачтена!'
     if homework_statuses == 'reviewing' or 'reviewing' or 'approved':
-         return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+        return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
     else:
         raise TGBotException('Значение поля заполнено неверно')
 
@@ -49,7 +49,7 @@ def get_homeworks(current_timestamp):
         homework_statuses = requests.get(URL, headers=headers, params=payload)
     except requests.exceptions.RequestException:
         raise TGBotException('Ошибка при работе с API')
-    answer = homework_statuses.json()  
+    answer = homework_statuses.json()
     if len(['homeworks']) == 0:
         raise IndexError('Спсок пуст')
     if homework_statuses.status_code != HTTPStatus.OK:
