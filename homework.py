@@ -25,22 +25,19 @@ URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 
 def parse_homework_status(homework):
     homework_name = homework.get('homework_name')
-    if homework_name is None:
-        raise TGBotException('Сообщение не содержит обязательных полей')
     homework_statuses = homework.get('status')
-    if homework_statuses is None:
-        raise TGBotException('Сообщение не содержит обязательных полей')
+    if homework_name is None or homework_statuses is None:
+        raise TGBotException('Сообщение не содержит обязательных полей')   
     if homework_statuses == 'reviewing':
         verdict = 'Работа взята в ревью.'
-    if homework_statuses == 'rejected':
+    elif homework_statuses == 'rejected':
         verdict = 'К сожалению, в работе нашлись ошибки.'
-    if homework_statuses == 'approved':
+    elif homework_statuses == 'approved':
         verdict = 'Ревьюеру всё понравилось, работа зачтена!'
-    if homework_statuses == 'reviewing' or 'reviewing' or 'approved':
-        return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
     else:
         raise TGBotException('Значение поля заполнено неверно')
-
+    return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+    
 
 def get_homeworks(current_timestamp):
     headers = {'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'}
@@ -49,11 +46,9 @@ def get_homeworks(current_timestamp):
         homework_statuses = requests.get(URL, headers=headers, params=payload)
     except requests.exceptions.RequestException:
         raise TGBotException('Ошибка при работе с API')
-    answer = homework_statuses.json()
-    if len(['homeworks']) == 0:
-        raise IndexError('Спсок пуст')
     if homework_statuses.status_code != HTTPStatus.OK:
         raise TGBotException('Ошибка при работе с сервером')
+    answer = homework_statuses.json()
     return answer
 
 
@@ -65,15 +60,18 @@ def main():
     current_timestamp = int(time.time())
     while True:
         try:
-            logging.debug('Отслеживание статуса запущено')
-            send_message(
-                parse_homework_status(
-                    get_homeworks(current_timestamp)['homeworks'][0]
-                )
-            )
+            logging.debug('Отслеживание статуса запущено')          
+            new_homework = get_homeworks(current_timestamp)
+            current_timestamp = new_homework.get('current_date')           
+            if 'homeworks' not in new_homework:
+                raise TGBotException('Список не существует')
+            last_homework = new_homework['homeworks']
+            if last_homework != []:
+                send_message(parse_homework_status(last_homework[0]))
+            else:
+                raise TGBotException('Список пуст')             
             logging.info('Бот отправил сообщение')
             time.sleep(15 * 60)
-
         except Exception as e:
             error_message = f'Бот упал с ошибкой: {e}'
             logging.error(error_message)
