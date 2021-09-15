@@ -68,8 +68,6 @@ def main():
             last_homework = new_homework['homeworks']
             if last_homework != []:
                 send_message(parse_homework_status(last_homework[0]))
-            else:
-                raise TGBotException('Список пуст')
             logging.info('Бот отправил сообщение')
             time.sleep(15 * 60)
         except Exception as e:
